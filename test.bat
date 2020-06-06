@@ -1,0 +1,1 @@
+MIPS_translator.exe -D FILE < in.txt > out.txt

@@ -1,0 +1,9 @@
+add $t1, $t2, $t3 # temporary test
+Start:
+j 4
+addi $t3, $zero, 666 # 
+lui $s1, 100 # test comment
+lw $t2, 300($t2) # Load test
+sw $t5, 300($a0) # Save test
+j Start
+add $t1, $t2, $t3, $t4 # Wrong test

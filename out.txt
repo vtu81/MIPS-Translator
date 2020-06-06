@@ -1,0 +1,8 @@
+014b4820
+08000001
+200b029a
+3c110064
+8d4a012c
+ac8d012c
+08000001
+# Cannot translate! Probably a wrong format
