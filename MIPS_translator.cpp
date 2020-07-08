@@ -6,55 +6,55 @@
 #include<map>
 
 using namespace std;
-int32_t inst; //32Î»Ö¸Áî
-string instName; //Ö¸ÁîÃû³Æ
-string operandNames[3]; //²Ù×÷ÊıÃû³Æ
-map<string, int32_t> REGS; //¼Ä´æÆ÷Ãû³ÆÓë±àºÅ¶ÔÓ¦±í
-map<string, int> TAGS; //±£´æËùÓĞµÄtag¶ÔÓ¦µÄ×ÖµØÖ·
-int instAddr = 0; //µ±Ç°Ö¸ÁîµÄ×ÖµØÖ·£¨¼´Ã¿¶àÒ»ÌõÖ¸Áî£¬instAddr×ÔÔö1£©
+int32_t inst; //32ä½æŒ‡ä»¤
+string instName; //æŒ‡ä»¤åç§°
+string operandNames[3]; //æ“ä½œæ•°åç§°
+map<string, int32_t> REGS; //å¯„å­˜å™¨åç§°ä¸ç¼–å·å¯¹åº”è¡¨
+map<string, int> TAGS; //ä¿å­˜æ‰€æœ‰çš„tagå¯¹åº”çš„å­—åœ°å€
+int instAddr = 0; //å½“å‰æŒ‡ä»¤çš„å­—åœ°å€ï¼ˆå³æ¯å¤šä¸€æ¡æŒ‡ä»¤ï¼ŒinstAddrè‡ªå¢1ï¼‰
 
-//½«string×ª»»ÎªĞ¡Ğ´
+//å°†stringè½¬æ¢ä¸ºå°å†™
 inline string strtolower(std::string s)
 {
     transform(s.begin(), s.end(), s.begin(), ::tolower);
     return s;
 }
 
-//string×ª»»Îªint32_t£¨¸ù¾İÊÇ·ñÓĞ'0x'×Ô¶¯¼ì²â16½øÖÆ/10½øÖÆ£©
+//stringè½¬æ¢ä¸ºint32_tï¼ˆæ ¹æ®æ˜¯å¦æœ‰'0x'è‡ªåŠ¨æ£€æµ‹16è¿›åˆ¶/10è¿›åˆ¶ï¼‰
 inline int32_t str2int(string t)
 {
     t = strtolower(t);
     if(t.length() >= 2 && t[0] == '0' && t[1] == 'x')
     {
         int32_t tmp;
-        istringstream ss(t); //ÊäÈëstringÁ÷
+        istringstream ss(t); //è¾“å…¥stringæµ
         ss >> hex >> tmp;
         return tmp;
     }
     return atoi(t.c_str());
 }
 
-//½«¶ÁÈëµÄ3¸öÓÃ¶ººÅ¼ä¸ôµÄtargetNum£¨<=3£©²Ù×÷Êı·Ö¸î£¬´æ·Åµ½È«¾Ö±äÁ¿operandNames[]ÖĞ
+//å°†è¯»å…¥çš„3ä¸ªç”¨é€—å·é—´éš”çš„targetNumï¼ˆ<=3ï¼‰æ“ä½œæ•°åˆ†å‰²ï¼Œå­˜æ”¾åˆ°å…¨å±€å˜é‡operandNames[]ä¸­
 int divideAllOperandsWithCommas(string& allOperands, int targetNum)
 {
     int cnt = 0;
     int comment_offset = -1;
     string tmp;
 
-    //Çå³ı×¢ÊÍ
+    //æ¸…é™¤æ³¨é‡Š
     comment_offset = allOperands.find_first_of('#');
     if(comment_offset != string::npos) allOperands.erase(comment_offset);
-    //½«¶ººÅÌæ»»Îª¿Õ¸ñ
+    //å°†é€—å·æ›¿æ¢ä¸ºç©ºæ ¼
     replace(allOperands.begin(), allOperands.end(), ',', ' '); 
-    //ÊäÈëstringÁ÷
+    //è¾“å…¥stringæµ
     istringstream ss(allOperands); 
 
-    //·Ö¸îallOperands×Ö·û´®
+    //åˆ†å‰²allOperandså­—ç¬¦ä¸²
     while(ss>>tmp)
     {
         if(cnt < targetNum)
         {
-            operandNames[cnt] = tmp; //·ÅÈëoperandNamesÊı×éµÄ0¡¢1¡¢2¸öÎ»ÖÃ
+            operandNames[cnt] = tmp; //æ”¾å…¥operandNamesæ•°ç»„çš„0ã€1ã€2ä¸ªä½ç½®
             cnt++;
         }
         else
@@ -72,23 +72,23 @@ int divideAllOperandsWithCommas(string& allOperands, int targetNum)
     return 1;
 }
 
-//ÅĞ¶Ï²¢±£´ætag
+//åˆ¤æ–­å¹¶ä¿å­˜tag
 int saveTags(string& allOperands)
 {
     int colon_offset = -1;
-    //ÕÒµÚÒ»¸öÃ°ºÅ
+    //æ‰¾ç¬¬ä¸€ä¸ªå†’å·
     colon_offset = allOperands.find_first_of(':');
-    //Èç¹ûÃ»ÓĞÃ°ºÅ£¬ÔòÒ»¶¨²»ÊÇÒ»¸ötag
+    //å¦‚æœæ²¡æœ‰å†’å·ï¼Œåˆ™ä¸€å®šä¸æ˜¯ä¸€ä¸ªtag
     if(colon_offset == string::npos)
          return 0;
         
-    //Èç¹ûÃ°ºÅ²»ÔÚ×îºó£¬ÔòÒ»¶¨²»ÊÇÒ»¸ötag
+    //å¦‚æœå†’å·ä¸åœ¨æœ€åï¼Œåˆ™ä¸€å®šä¸æ˜¯ä¸€ä¸ªtag
     if(colon_offset != allOperands.length() - 1)
          return 0;
     
-    //ÉÏÊö¶¼²»Âú×ãµÄ»°£¬ÊÇÒ»¸öºÏ·¨µÄtag
-    allOperands.erase(colon_offset); //Ö»±£Áôµ¥´Ê
-    TAGS[allOperands] = instAddr; //±£´æÖÁTAGSµÄmapÖĞ£¬ÒÔºó¿ÉÄÜ»áÓÃµ½
+    //ä¸Šè¿°éƒ½ä¸æ»¡è¶³çš„è¯ï¼Œæ˜¯ä¸€ä¸ªåˆæ³•çš„tag
+    allOperands.erase(colon_offset); //åªä¿ç•™å•è¯
+    TAGS[allOperands] = instAddr; //ä¿å­˜è‡³TAGSçš„mapä¸­ï¼Œä»¥åå¯èƒ½ä¼šç”¨åˆ°
     #ifndef MIPSFILE
     cout<<"# Tag found! Tag "<<allOperands<<" corresponds to word address "<<instAddr<<endl;
     #endif
@@ -107,7 +107,7 @@ int main()
 
     do
     {
-        //¶ÁÈëÖ¸ÁîÃû³Æ
+        //è¯»å…¥æŒ‡ä»¤åç§°
         if(!(cin>>instName))
         {
             #ifndef MIPSFILE
@@ -115,7 +115,7 @@ int main()
             #endif
             break;
         }
-        instName = strtolower(instName); //×ª»»ÎªĞ¡Ğ´
+        instName = strtolower(instName); //è½¬æ¢ä¸ºå°å†™
 
         if(instName == "quit")
         {
@@ -125,16 +125,16 @@ int main()
             break;
         }
 
-        if(!readInst(instName)) continue; //·­ÒëÖ¸Áî
+        if(!readInst(instName)) continue; //ç¿»è¯‘æŒ‡ä»¤
 
-        instAddr++; //¶ÔÓÚºÏ·¨Ö¸Áî£¨²»°üº¬tag£©£¬Ã¿´Î·­ÒëÍê³É×ÖµØÖ·++
+        instAddr++; //å¯¹äºåˆæ³•æŒ‡ä»¤ï¼ˆä¸åŒ…å«tagï¼‰ï¼Œæ¯æ¬¡ç¿»è¯‘å®Œæˆå­—åœ°å€++
 
         #ifndef MIPSFILE
-        cout<<hex<<"instruction: "<<setfill('0')<<setw(8)<<inst<<endl; //Êä³öÖ¸Áî
+        cout<<hex<<"instruction: "<<setfill('0')<<setw(8)<<inst<<endl; //è¾“å‡ºæŒ‡ä»¤
         #endif
         
         #ifdef MIPSFILE
-        cout<<hex<<setfill('0')<<setw(8)<<inst<<endl; //Êä³öÖ¸Áî£¨Ö±½Ó½«»úÆ÷ÂëÊä³öµ½ÎÄ¼ş£¬²»±£Áô¶àÓàµÄËµÃ÷£©
+        cout<<hex<<setfill('0')<<setw(8)<<inst<<endl; //è¾“å‡ºæŒ‡ä»¤ï¼ˆç›´æ¥å°†æœºå™¨ç è¾“å‡ºåˆ°æ–‡ä»¶ï¼Œä¸ä¿ç•™å¤šä½™çš„è¯´æ˜ï¼‰
         #endif
         
     } while (1);
@@ -149,24 +149,24 @@ int readInst(string& instName)
     {
         string allOperands;
         
-        getline(cin, allOperands); //¶ÁÈë¸ÃĞĞÊ£ÓàÄÚÈİ
+        getline(cin, allOperands); //è¯»å…¥è¯¥è¡Œå‰©ä½™å†…å®¹
         
         if(!divideAllOperandsWithCommas(allOperands, 3)) return 0;
 
-        //»ñÈ¡¼Ä´æÆ÷±àÂë
+        //è·å–å¯„å­˜å™¨ç¼–ç 
         int32_t rs, rt, rd;
         rs = REGS[operandNames[1]];
         rt = REGS[operandNames[2]];
         rd = REGS[operandNames[0]];
 
-        //½«¼Ä´æÆ÷±àÂë·Åµ½inst¶ÔÓ¦Î»ÖÃ
+        //å°†å¯„å­˜å™¨ç¼–ç æ”¾åˆ°instå¯¹åº”ä½ç½®
         inst = 0;
         inst |= (rs << 21);
         inst |= (rt << 16);
         inst |= (rd << 11);
 
 
-        //½Ó×Å´¦Àífunc
+        //æ¥ç€å¤„ç†func
         int32_t func;
         if(instName == "add") func = 32;
         else if(instName == "sub") func = 34;
@@ -180,87 +180,87 @@ int readInst(string& instName)
     else if(instName == "srl")
     {
         string allOperands;
-        getline(cin, allOperands); //¶ÁÈë¸ÃĞĞÊ£ÓàÄÚÈİ
+        getline(cin, allOperands); //è¯»å…¥è¯¥è¡Œå‰©ä½™å†…å®¹
         
         if(!divideAllOperandsWithCommas(allOperands, 3)) return 0;
         
-        //»ñÈ¡¼Ä´æÆ÷±àÂë¡¢shamt
+        //è·å–å¯„å­˜å™¨ç¼–ç ã€shamt
         int32_t rt, rd, shamt;
         shamt = str2int(operandNames[2]);
         rt = REGS[operandNames[1]];
         rd = REGS[operandNames[0]];
 
-        //½«¼Ä´æÆ÷±àÂë¡¢shamt·Åµ½inst¶ÔÓ¦Î»ÖÃ
+        //å°†å¯„å­˜å™¨ç¼–ç ã€shamtæ”¾åˆ°instå¯¹åº”ä½ç½®
         inst = 0;
         inst |= (shamt << 6);
         inst |= (rt << 16);
         inst |= (rd << 11);
 
-        //½Ó×Å´¦Àífunc
-        int32_t func = 2; //½öÕë¶Ôsrl£¬ºóÆÚÀ©Õ¹ĞèÓÃÅĞ¶¨Óï¾ä
+        //æ¥ç€å¤„ç†func
+        int32_t func = 2; //ä»…é’ˆå¯¹srlï¼ŒåæœŸæ‰©å±•éœ€ç”¨åˆ¤å®šè¯­å¥
         inst |= func;
     }
     else if(instName == "jr")
     {
         string allOperands;
         
-        getline(cin, allOperands); //¶ÁÈë¸ÃĞĞÊ£ÓàÄÚÈİ
+        getline(cin, allOperands); //è¯»å…¥è¯¥è¡Œå‰©ä½™å†…å®¹
 
         if(!divideAllOperandsWithCommas(allOperands, 1)) return 0;
 
-        //»ñÈ¡¼Ä´æÆ÷±àÂë
+        //è·å–å¯„å­˜å™¨ç¼–ç 
         int32_t rs;
         rs = REGS[operandNames[0]];
 
-        //½«¼Ä´æÆ÷±àÂë·Åµ½inst¶ÔÓ¦Î»ÖÃ
+        //å°†å¯„å­˜å™¨ç¼–ç æ”¾åˆ°instå¯¹åº”ä½ç½®
         inst = 0;
         inst |= (rs << 21);
 
 
-        //½Ó×Å´¦Àífunc
-        int32_t func = 8; //½öÕë¶Ôjr£¬ºóÆÚÀ©Õ¹ĞèÓÃÅĞ¶¨Óï¾ä
+        //æ¥ç€å¤„ç†func
+        int32_t func = 8; //ä»…é’ˆå¯¹jrï¼ŒåæœŸæ‰©å±•éœ€ç”¨åˆ¤å®šè¯­å¥
         inst |= func;
     }
     else if(instName == "jalr")
     {
         string allOperands;
         
-        getline(cin, allOperands); //¶ÁÈë¸ÃĞĞÊ£ÓàÄÚÈİ
+        getline(cin, allOperands); //è¯»å…¥è¯¥è¡Œå‰©ä½™å†…å®¹
 
         if(!divideAllOperandsWithCommas(allOperands, 2)) return 0;
         
-        //»ñÈ¡¼Ä´æÆ÷±àÂë
+        //è·å–å¯„å­˜å™¨ç¼–ç 
         int32_t rs, rt, rd;
         rs = REGS[operandNames[0]];
         rd = REGS[operandNames[1]];
 
-        //½«¼Ä´æÆ÷±àÂë·Åµ½inst¶ÔÓ¦Î»ÖÃ
+        //å°†å¯„å­˜å™¨ç¼–ç æ”¾åˆ°instå¯¹åº”ä½ç½®
         inst = 0;
         inst |= (rs << 21);
         inst |= (rd << 11);
 
 
-        //½Ó×Å´¦Àífunc
-        int32_t func = 9; //½öÕë¶Ôjalr£¬ºóÆÚÀ©Õ¹ĞèÓÃÅĞ¶¨Óï¾ä
+        //æ¥ç€å¤„ç†func
+        int32_t func = 9; //ä»…é’ˆå¯¹jalrï¼ŒåæœŸæ‰©å±•éœ€ç”¨åˆ¤å®šè¯­å¥
         inst |= func;
     }
     else if(instName == "lw" || instName == "sw")
     {
-        // int numOperand = 0; //²Ù×÷Êı¼ÆÊıÆ÷
+        // int numOperand = 0; //æ“ä½œæ•°è®¡æ•°å™¨
         // string allOperands, tmp;
         
-        // getline(cin, allOperands); //¶ÁÈë¸ÃĞĞÊ£ÓàÄÚÈİ
-        // replace(allOperands.begin(), allOperands.end(), ',', ' '); //½«¶ººÅÌæ»»Îª¿Õ¸ñ
+        // getline(cin, allOperands); //è¯»å…¥è¯¥è¡Œå‰©ä½™å†…å®¹
+        // replace(allOperands.begin(), allOperands.end(), ',', ' '); //å°†é€—å·æ›¿æ¢ä¸ºç©ºæ ¼
         // replace(allOperands.begin(), allOperands.end(), '(', ' ');
-        // replace(allOperands.begin(), allOperands.end(), ')', ' '); //½«À¨ºÅÌæ»»Îª¿Õ¸ñ
+        // replace(allOperands.begin(), allOperands.end(), ')', ' '); //å°†æ‹¬å·æ›¿æ¢ä¸ºç©ºæ ¼
 
-        // istringstream ss(allOperands); //ÊäÈëstringÁ÷
-        // //·Ö¸îallOperands×Ö·û´®
+        // istringstream ss(allOperands); //è¾“å…¥stringæµ
+        // //åˆ†å‰²allOperandså­—ç¬¦ä¸²
         // while(ss>>tmp)
         // {
         //     if(numOperand < 3)
         //     {
-        //         operandNames[numOperand] = tmp; //·ÅÈëoperandNamesÊı×éµÄ0¡¢1¡¢2¸öÎ»ÖÃ
+        //         operandNames[numOperand] = tmp; //æ”¾å…¥operandNamesæ•°ç»„çš„0ã€1ã€2ä¸ªä½ç½®
         //         numOperand++;
         //     }
         //     else
@@ -278,26 +278,26 @@ int readInst(string& instName)
 
         string allOperands;
         
-        getline(cin, allOperands); //¶ÁÈë¸ÃĞĞÊ£ÓàÄÚÈİ
+        getline(cin, allOperands); //è¯»å…¥è¯¥è¡Œå‰©ä½™å†…å®¹
 
         replace(allOperands.begin(), allOperands.end(), '(', ' ');
-        replace(allOperands.begin(), allOperands.end(), ')', ' '); //½«À¨ºÅÌæ»»Îª¿Õ¸ñ
+        replace(allOperands.begin(), allOperands.end(), ')', ' '); //å°†æ‹¬å·æ›¿æ¢ä¸ºç©ºæ ¼
 
         if(!divideAllOperandsWithCommas(allOperands, 3)) return 0;
         
-        //»ñÈ¡¼Ä´æÆ÷±àÂë¡¢Á¢¼´Êı
+        //è·å–å¯„å­˜å™¨ç¼–ç ã€ç«‹å³æ•°
         int32_t rs, rt, imm;
         rs = REGS[operandNames[2]];
         rt = REGS[operandNames[0]];
         imm = str2int(operandNames[1]);
 
-        //½«¼Ä´æÆ÷±àÂë¡¢Á¢¼´Êı·Åµ½inst¶ÔÓ¦Î»ÖÃ
+        //å°†å¯„å­˜å™¨ç¼–ç ã€ç«‹å³æ•°æ”¾åˆ°instå¯¹åº”ä½ç½®
         inst = 0;
         inst |= imm;
         inst |= (rs << 21);
         inst |= (rt << 16);
 
-        //½Ó×Å´¦Àíopcode
+        //æ¥ç€å¤„ç†opcode
         int32_t opcode;
         if(instName == "lw") opcode = 35;
         else if(instName == "sw") opcode = 43;
@@ -307,23 +307,23 @@ int readInst(string& instName)
     {
         string allOperands;
         
-        getline(cin, allOperands); //¶ÁÈë¸ÃĞĞÊ£ÓàÄÚÈİ
+        getline(cin, allOperands); //è¯»å…¥è¯¥è¡Œå‰©ä½™å†…å®¹
 
         if(!divideAllOperandsWithCommas(allOperands, 3)) return 0;
         
-        //»ñÈ¡¼Ä´æÆ÷±àÂë¡¢Á¢¼´Êı
+        //è·å–å¯„å­˜å™¨ç¼–ç ã€ç«‹å³æ•°
         int32_t rs, rt, imm;
         imm = str2int(operandNames[2]);
         rs = REGS[operandNames[0]];
         rt = REGS[operandNames[1]];
 
-        //½«¼Ä´æÆ÷±àÂë¡¢Á¢¼´Êı·Åµ½inst¶ÔÓ¦Î»ÖÃ
+        //å°†å¯„å­˜å™¨ç¼–ç ã€ç«‹å³æ•°æ”¾åˆ°instå¯¹åº”ä½ç½®
         inst = 0;
         inst |= imm;
         inst |= (rt << 16);
         inst |= (rs << 21);
 
-        //½Ó×Å´¦Àíopcode
+        //æ¥ç€å¤„ç†opcode
         int32_t opcode;
         if(instName == "beq") opcode = 4;
         else if(instName == "bne") opcode = 5;
@@ -334,23 +334,23 @@ int readInst(string& instName)
     {
         string allOperands;
         
-        getline(cin, allOperands); //¶ÁÈë¸ÃĞĞÊ£ÓàÄÚÈİ
+        getline(cin, allOperands); //è¯»å…¥è¯¥è¡Œå‰©ä½™å†…å®¹
 
         if(!divideAllOperandsWithCommas(allOperands, 3)) return 0;
         
-        //»ñÈ¡¼Ä´æÆ÷±àÂë¡¢Á¢¼´Êı
+        //è·å–å¯„å­˜å™¨ç¼–ç ã€ç«‹å³æ•°
         int32_t rs, rt, imm;
         imm = str2int(operandNames[2]);
         rt = REGS[operandNames[0]];
         rs = REGS[operandNames[1]];
 
-        //½«¼Ä´æÆ÷±àÂë¡¢Á¢¼´Êı·Åµ½inst¶ÔÓ¦Î»ÖÃ
+        //å°†å¯„å­˜å™¨ç¼–ç ã€ç«‹å³æ•°æ”¾åˆ°instå¯¹åº”ä½ç½®
         inst = 0;
         inst |= imm;
         inst |= (rt << 16);
         inst |= (rs << 21);
 
-        //½Ó×Å´¦Àíopcode
+        //æ¥ç€å¤„ç†opcode
         int32_t opcode;
         if(instName == "addi") opcode = 8;
         else if(instName == "andi") opcode = 12;
@@ -363,55 +363,55 @@ int readInst(string& instName)
     {
         string allOperands;
         
-        getline(cin, allOperands); //¶ÁÈë¸ÃĞĞÊ£ÓàÄÚÈİ
+        getline(cin, allOperands); //è¯»å…¥è¯¥è¡Œå‰©ä½™å†…å®¹
 
         if(!divideAllOperandsWithCommas(allOperands, 2)) return 0;
         
-        //»ñÈ¡¼Ä´æÆ÷±àÂë¡¢Á¢¼´Êı
+        //è·å–å¯„å­˜å™¨ç¼–ç ã€ç«‹å³æ•°
         int32_t rt, imm;
         imm = str2int(operandNames[1]);
         rt = REGS[operandNames[0]];
 
-        //½«¼Ä´æÆ÷±àÂë¡¢Á¢¼´Êı·Åµ½inst¶ÔÓ¦Î»ÖÃ
+        //å°†å¯„å­˜å™¨ç¼–ç ã€ç«‹å³æ•°æ”¾åˆ°instå¯¹åº”ä½ç½®
         inst = 0;
         inst |= imm;
         inst |= (rt << 16);
 
-        //½Ó×Å´¦Àíopcode
-        int32_t opcode = 15; //½öÕë¶Ôlui£¬ºóÆÚÀ©Õ¹ĞèÓÃÅĞ¶¨Óï¾ä
+        //æ¥ç€å¤„ç†opcode
+        int32_t opcode = 15; //ä»…é’ˆå¯¹luiï¼ŒåæœŸæ‰©å±•éœ€ç”¨åˆ¤å®šè¯­å¥
         inst |= (opcode << 26);
     }
     else if(instName == "j" || instName == "jal")
     {
         string allOperands;
         
-        getline(cin, allOperands); //¶ÁÈë¸ÃĞĞÊ£ÓàÄÚÈİ
+        getline(cin, allOperands); //è¯»å…¥è¯¥è¡Œå‰©ä½™å†…å®¹
 
         if(!divideAllOperandsWithCommas(allOperands, 1)) return 0;
         
-        //ÒÔÏÂÅĞ¶¨ÊµÏÖÊ¶±ğÓÃ»§Ê¹ÓÃÁËtag»¹ÊÇÊı×Ö½øĞĞÌø×ª£¡
+        //ä»¥ä¸‹åˆ¤å®šå®ç°è¯†åˆ«ç”¨æˆ·ä½¿ç”¨äº†tagè¿˜æ˜¯æ•°å­—è¿›è¡Œè·³è½¬ï¼
         int32_t imm;
         if(operandNames[0][0] < '0' || operandNames[0][0] > '9')
         {
-            //ÊÇÒ»¸ötag£¬¶ø²»ÊÇÊı×Ö
+            //æ˜¯ä¸€ä¸ªtagï¼Œè€Œä¸æ˜¯æ•°å­—
             imm = TAGS[strtolower(operandNames[0])];
             #ifndef MIPSFILE
-            cout << "# Tag recognized! The tag " << strtolower(operandNames[0]) << " corresponds to word address " << imm << endl; //µ÷ÊÔĞÅÏ¢
+            cout << "# Tag recognized! The tag " << strtolower(operandNames[0]) << " corresponds to word address " << imm << endl; //è°ƒè¯•ä¿¡æ¯
             #endif
         }
         else
         {
-            //·ñÔòÊÇÒ»¸öÊı×Ö£¬¶ø²»ÊÇtag
-            //»ñÈ¡¼Ä´æÆ÷±àÂë
+            //å¦åˆ™æ˜¯ä¸€ä¸ªæ•°å­—ï¼Œè€Œä¸æ˜¯tag
+            //è·å–å¯„å­˜å™¨ç¼–ç 
             imm = str2int(operandNames[0]) / 4;
         }
 
 
-        //½«¼Ä´æÆ÷±àÂë·Åµ½inst¶ÔÓ¦Î»ÖÃ
+        //å°†å¯„å­˜å™¨ç¼–ç æ”¾åˆ°instå¯¹åº”ä½ç½®
         inst = 0;
         inst |= imm;
 
-        //½Ó×Å´¦Àíopcode
+        //æ¥ç€å¤„ç†opcode
         int32_t opcode;
         if(instName == "j") opcode = 2;
         else if(instName == "jal") opcode = 3;
@@ -421,16 +421,16 @@ int readInst(string& instName)
     {
         string allOperands;
         
-        getline(cin, allOperands); //¶ÁÈë¸ÃĞĞÊ£ÓàÄÚÈİ²¢ºöÂÔ£¡
+        getline(cin, allOperands); //è¯»å…¥è¯¥è¡Œå‰©ä½™å†…å®¹å¹¶å¿½ç•¥ï¼
 
-        //ÅĞ¶¨²¢±£´æÒ»¸ötag
+        //åˆ¤å®šå¹¶ä¿å­˜ä¸€ä¸ªtag
         if(saveTags(instName))
         {
-            //ÊÇµÄ»°Ö±½Ó·µ»Ø0£¨ÊÇtagµ«²»ÊÇÒ»ÌõÖ¸Áî£¬Òò¶øÊ²Ã´¶¼²»Êä³ö£¬Ò²²»±ØÌáĞÑÓÃ»§£©
+            //æ˜¯çš„è¯ç›´æ¥è¿”å›0ï¼ˆæ˜¯tagä½†ä¸æ˜¯ä¸€æ¡æŒ‡ä»¤ï¼Œå› è€Œä»€ä¹ˆéƒ½ä¸è¾“å‡ºï¼Œä¹Ÿä¸å¿…æé†’ç”¨æˆ·ï¼‰
             return 0;
         }
 
-        //·ñÔò²»ÊÇÒ»¸ötag£¬ÄÇÃ´Ò»¶¨ÊÇÒ»¸ö²»ºÏ·¨ÊäÈë£¬ÒªÌáĞÑÓÃ»§
+        //å¦åˆ™ä¸æ˜¯ä¸€ä¸ªtagï¼Œé‚£ä¹ˆä¸€å®šæ˜¯ä¸€ä¸ªä¸åˆæ³•è¾“å…¥ï¼Œè¦æé†’ç”¨æˆ·
         #ifndef MIPSFILE
         cout<<"Instruction name not recognized! Please enter again:"<<endl;
         #endif
